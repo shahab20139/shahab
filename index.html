@@ -2,142 +2,838 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>سایت چت</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>چت‌روم</title>
 <style>
-  * { box-sizing: border-box; font-family: Tahoma, sans-serif; }
-  body { margin: 0; background: #1a1a2e; color: #eee; min-height: 100vh; }
-  .container { max-width: 900px; margin: 0 auto; padding: 20px; }
-  .card { background: #16213e; border-radius: 10px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-  input, textarea, select, button { width: 100%; padding: 10px; margin: 5px 0; border-radius: 6px; border: 1px solid #0f3460; background: #0f3460; color: #fff; font-family: inherit; }
-  button { background: #e94560; cursor: pointer; border: none; font-weight: bold; transition: 0.2s; }
-  button:hover { background: #ff5c7a; }
-  button.sec { background: #533483; }
-  button.sec:hover { background: #6b44a8; }
-  button.danger { background: #c0392b; }
-  button.ok { background: #27ae60; }
+  @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap');
+
+  * { box-sizing: border-box; font-family: 'Vazirmatn', Tahoma, sans-serif; margin: 0; padding: 0; }
+  
+  :root {
+    --bg-dark: #0a0e1a;
+    --bg-card: #131a2b;
+    --bg-input: #1c2438;
+    --accent: #6366f1;
+    --accent-2: #8b5cf6;
+    --pink: #ec4899;
+    --green: #10b981;
+    --red: #ef4444;
+    --gold: #f59e0b;
+    --text: #e2e8f0;
+    --text-dim: #94a3b8;
+  }
+
+  body {
+    background: radial-gradient(ellipse at top, #1e1b4b 0%, #0a0e1a 60%);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(circle at 20% 30%, rgba(99,102,241,0.15) 0%, transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(236,72,153,0.12) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
   .hidden { display: none !important; }
-  h2, h3 { color: #e94560; }
-  .msg { background: #0f3460; padding: 8px 12px; border-radius: 8px; margin: 8px 0; word-wrap: break-word; }
-  .msg .head { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; font-size: 13px; }
-  .msg .name { color: #ffd369; font-weight: bold; }
-  .rank { padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: bold; color: #fff; }
-  .rank.admin { background: #e74c3c; }
-  .rank.streamer { background: #9b59b6; }
-  .rank.vip { background: #2ecc71; }
-  .rank.gold { background: #d4af37; color: #000; }
-  .rank.member { background: #7f8c8d; }
-  .tabs { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; }
-  .tabs button { width: auto; padding: 8px 14px; margin: 0; }
-  .tabs button.active { background: #e94560; }
-  .tabs button:not(.active) { background: #0f3460; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th, td { padding: 8px; border-bottom: 1px solid #0f3460; text-align: right; }
-  th { color: #e94560; }
-  .info { font-size: 12px; color: #aaa; margin: 4px 0; }
-  .ban-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
-  .ban-box { background: #16213e; padding: 30px; border-radius: 12px; max-width: 500px; text-align: center; border: 2px solid #e94560; }
-  .log-entry { font-size: 12px; padding: 6px; border-bottom: 1px solid #0f3460; }
+
+  /* ===== Auth ===== */
+  #authPage {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .auth-card {
+    background: rgba(19, 26, 43, 0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(99,102,241,0.25);
+    border-radius: 24px;
+    padding: 40px 32px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 80px rgba(99,102,241,0.1);
+    animation: slideUp 0.5s ease;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .auth-logo {
+    text-align: center;
+    font-size: 42px;
+    margin-bottom: 8px;
+  }
+
+  .auth-title {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--accent), var(--pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 4px;
+  }
+
+  .auth-sub {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+
+  /* Tabs */
+  .auth-tabs {
+    display: flex;
+    background: var(--bg-input);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 20px;
+  }
+
+  .auth-tabs button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+
+  .auth-tabs button.active {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(99,102,241,0.4);
+  }
+
+  /* Inputs */
+  .field { margin-bottom: 12px; position: relative; }
+
+  .field input, .field textarea, .field select {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--bg-input);
+    border: 1.5px solid transparent;
+    border-radius: 12px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    transition: all 0.2s;
+    outline: none;
+  }
+
+  .field input:focus, .field textarea:focus, .field select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(99,102,241,0.15);
+  }
+
+  .field input::placeholder, .field textarea::placeholder { color: #64748b; }
+
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #fff;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    box-shadow: 0 6px 20px rgba(99,102,241,0.4);
+  }
+
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(99,102,241,0.5); }
+
+  .btn-ghost {
+    background: var(--bg-input);
+    color: var(--text);
+    border: 1.5px solid rgba(99,102,241,0.2);
+  }
+
+  .btn-ghost:hover { border-color: var(--accent); }
+
+  .btn-sm { width: auto; padding: 8px 14px; font-size: 12px; }
+  .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+  .btn-success { background: linear-gradient(135deg, #10b981, #059669); }
+
+  .auth-msg {
+    text-align: center;
+    font-size: 13px;
+    margin-top: 12px;
+    min-height: 18px;
+    color: var(--red);
+    font-weight: 600;
+  }
+
+  /* ===== Chat Layout ===== */
+  #chatPage {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 16px;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 16px;
+    height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (max-width: 900px) {
+    #chatPage { grid-template-columns: 1fr; height: auto; }
+  }
+
+  /* Top bar */
+  .topbar {
+    grid-column: 1 / -1;
+    background: rgba(19, 26, 43, 0.7);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 18px;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .user-info { display: flex; align-items: center; gap: 10px; }
+
+  .avatar {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--pink));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 18px; color: #fff;
+    box-shadow: 0 4px 12px rgba(99,102,241,0.4);
+  }
+
+  .user-name { font-weight: 700; font-size: 15px; }
+  .user-meta { display: flex; gap: 6px; align-items: center; margin-top: 2px; }
+
+  .topbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* Rank badges */
+  .rank {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.3px;
+  }
+  .rank.admin    { background: linear-gradient(135deg, #ef4444, #b91c1c); box-shadow: 0 0 12px rgba(239,68,68,0.5); }
+  .rank.streamer { background: linear-gradient(135deg, #a855f7, #7c3aed); box-shadow: 0 0 12px rgba(168,85,247,0.5); }
+  .rank.vip      { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 0 12px rgba(16,185,129,0.5); }
+  .rank.gold     { background: linear-gradient(135deg, #fbbf24, #d97706); box-shadow: 0 0 12px rgba(251,191,36,0.5); color: #422006; }
+  .rank.member   { background: linear-gradient(135deg, #64748b, #475569); }
+
+  /* ===== Chat panel ===== */
+  .chat-panel {
+    background: rgba(19, 26, 43, 0.7);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: calc(100vh - 100px);
+  }
+
+  @media (max-width: 900px) {
+    .chat-panel { height: 70vh; }
+  }
+
+  .panel-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid rgba(99,102,241,0.15);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  .panel-header .icon {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+
+  .panel-header .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    margin-right: auto;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .chat-box {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scroll-behavior: smooth;
+  }
+
+  .chat-box::-webkit-scrollbar { width: 6px; }
+  .chat-box::-webkit-scrollbar-track { background: transparent; }
+  .chat-box::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 3px; }
+  .chat-box::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.6); }
+
+  /* Message bubble */
+  .msg-row {
+    display: flex;
+    flex-direction: column;
+    animation: msgIn 0.3s ease;
+  }
+
+  @keyframes msgIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg-row.own { align-items: flex-start; }
+  .msg-row.other { align-items: flex-end; }
+
+  .msg-head {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 4px;
+    padding: 0 4px;
+    font-size: 12px;
+  }
+
+  .msg-head .name { font-weight: 800; color: #c7d2fe; }
+
+  .bubble {
+    max-width: 75%;
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.6;
+    word-wrap: break-word;
+    position: relative;
+  }
+
+  .msg-row.own .bubble {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border-bottom-right-radius: 4px;
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+  }
+
+  .msg-row.other .bubble {
+    background: var(--bg-input);
+    border: 1px solid rgba(99,102,241,0.15);
+    border-bottom-left-radius: 4px;
+    color: var(--text);
+  }
+
+  .msg-actions {
+    display: flex;
+    gap: 4px;
+    margin-top: 6px;
+    padding: 0 4px;
+  }
+
+  .msg-actions button {
+    padding: 3px 10px;
+    font-size: 11px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 700;
+    background: rgba(239,68,68,0.15);
+    color: #fca5a5;
+    transition: 0.2s;
+  }
+
+  .msg-actions button:hover { background: rgba(239,68,68,0.3); }
+
+  /* Input */
+  .chat-input-area {
+    padding: 12px 16px;
+    border-top: 1px solid rgba(99,102,241,0.15);
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  .chat-input-area textarea {
+    flex: 1;
+    padding: 12px 16px;
+    background: var(--bg-input);
+    border: 1.5px solid transparent;
+    border-radius: 14px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    resize: none;
+    outline: none;
+    max-height: 120px;
+    transition: 0.2s;
+  }
+
+  .chat-input-area textarea:focus { border-color: var(--accent); }
+
+  .send-btn {
+    width: 46px; height: 46px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 15px rgba(99,102,241,0.4);
+    transition: 0.2s;
+    flex-shrink: 0;
+  }
+
+  .send-btn:hover { transform: scale(1.05); }
+
+  /* ===== Announce panel ===== */
+  .announce-panel {
+    background: rgba(19, 26, 43, 0.7);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(236,72,153,0.25);
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: calc(100vh - 100px);
+    box-shadow: 0 0 40px rgba(236,72,153,0.08);
+  }
+
+  @media (max-width: 900px) {
+    .announce-panel { height: auto; max-height: 60vh; }
+  }
+
+  .announce-panel .panel-header {
+    border-bottom-color: rgba(236,72,153,0.2);
+  }
+
+  .announce-panel .panel-header .icon {
+    background: linear-gradient(135deg, var(--pink), #db2777);
+    box-shadow: 0 0 15px rgba(236,72,153,0.4);
+  }
+
+  .announce-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .announce-list::-webkit-scrollbar { width: 6px; }
+  .announce-list::-webkit-scrollbar-thumb { background: rgba(236,72,153,0.3); border-radius: 3px; }
+
+  .announce-item {
+    background: linear-gradient(135deg, rgba(236,72,153,0.1), rgba(139,92,246,0.08));
+    border: 1px solid rgba(236,72,153,0.2);
+    border-right: 3px solid var(--pink);
+    border-radius: 14px;
+    padding: 14px;
+    animation: msgIn 0.4s ease;
+    position: relative;
+  }
+
+  .announce-item .a-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+
+  .announce-item .a-head .name { font-weight: 800; color: #f9a8d4; }
+
+  .announce-item .a-body {
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: #e2e8f0;
+  }
+
+  .announce-empty {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 13px;
+    padding: 30px 10px;
+  }
+
+  .announce-empty .big { font-size: 40px; display: block; margin-bottom: 8px; opacity: 0.5; }
+
+  .announce-input {
+    padding: 12px 16px;
+    border-top: 1px solid rgba(236,72,153,0.2);
+    display: flex;
+    gap: 8px;
+  }
+
+  .announce-input textarea {
+    flex: 1;
+    padding: 10px 12px;
+    background: var(--bg-input);
+    border: 1.5px solid transparent;
+    border-radius: 12px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+    resize: none;
+    outline: none;
+    transition: 0.2s;
+  }
+
+  .announce-input textarea:focus { border-color: var(--pink); }
+
+  /* ===== Panels (Admin/Super) ===== */
+  .fullscreen-panel {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-dark);
+    z-index: 100;
+    overflow-y: auto;
+    padding: 20px;
+  }
+
+  .fullscreen-panel::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at 30% 20%, rgba(99,102,241,0.15) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .panel-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .panel-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 16px 20px;
+    background: rgba(19,26,43,0.7);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 18px;
+  }
+
+  .panel-top h2 {
+    font-size: 20px;
+    background: linear-gradient(135deg, var(--accent), var(--pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .panel-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .panel-tabs button {
+    padding: 9px 16px;
+    border-radius: 12px;
+    border: 1.5px solid rgba(99,102,241,0.2);
+    background: rgba(19,26,43,0.7);
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  .panel-tabs button:hover { border-color: var(--accent); color: var(--text); }
+  .panel-tabs button.active {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 4px 15px rgba(99,102,241,0.4);
+  }
+
+  .user-row, .ban-row, .rank-row {
+    background: rgba(19,26,43,0.7);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(99,102,241,0.15);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 10px;
+    transition: 0.2s;
+  }
+
+  .user-row:hover, .ban-row:hover { border-color: rgba(99,102,241,0.4); }
+
+  .row-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .row-name { font-weight: 800; font-size: 15px; }
+  .row-info { font-size: 12.5px; color: var(--text-dim); margin: 3px 0; }
+  .row-info b { color: #ffd369; font-family: monospace; }
+
+  .row-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .row-actions button {
+    padding: 6px 12px;
+    border-radius: 10px;
+    border: none;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+    color: #fff;
+  }
+
+  .row-actions .b-sec { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+  .row-actions .b-red { background: linear-gradient(135deg, #ef4444, #dc2626); }
+  .row-actions .b-green { background: linear-gradient(135deg, #10b981, #059669); }
+  .row-actions .b-gold { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+  .row-actions button:hover { transform: translateY(-2px); }
+
+  .log-line {
+    padding: 10px 14px;
+    background: rgba(19,26,43,0.7);
+    border-right: 3px solid var(--accent);
+    border-radius: 10px;
+    margin-bottom: 6px;
+    font-size: 12.5px;
+    color: #cbd5e1;
+    font-family: 'Vazirmatn', monospace;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--text-dim);
+  }
+
+  .empty-state .big { font-size: 50px; display: block; margin-bottom: 12px; opacity: 0.4; }
+
+  /* ===== Ban overlay ===== */
+  .ban-overlay {
+    position: fixed; inset: 0;
+    background: rgba(10, 14, 26, 0.97);
+    backdrop-filter: blur(10px);
+    z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+
+  .ban-box {
+    background: rgba(19,26,43,0.95);
+    border: 2px solid var(--red);
+    border-radius: 24px;
+    padding: 40px 30px;
+    max-width: 480px;
+    text-align: center;
+    box-shadow: 0 0 60px rgba(239,68,68,0.3);
+    animation: slideUp 0.4s ease;
+  }
+
+  .ban-box .icon { font-size: 60px; margin-bottom: 12px; }
+  .ban-box h2 { color: var(--red); margin-bottom: 16px; font-size: 22px; }
+  .ban-box .reason { color: #fca5a5; margin-bottom: 12px; font-size: 15px; line-height: 1.7; }
+  .ban-box .time { color: #fbbf24; font-weight: 800; font-size: 17px; margin-bottom: 20px; }
+
+  /* Search */
+  .search-box {
+    width: 100%;
+    padding: 12px 18px;
+    background: rgba(19,26,43,0.7);
+    border: 1.5px solid rgba(99,102,241,0.2);
+    border-radius: 14px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    margin-bottom: 16px;
+    outline: none;
+    transition: 0.2s;
+  }
+
+  .search-box:focus { border-color: var(--accent); }
+  .search-box::placeholder { color: #64748b; }
 </style>
 </head>
 <body>
 
+<!-- ===== Ban Overlay ===== -->
 <div id="banOverlay" class="ban-overlay hidden">
   <div class="ban-box">
-    <h2>🚫 شما تعلیق شده‌اید</h2>
-    <p id="banReason"></p>
-    <p id="banTime" style="color:#e94560;font-weight:bold;"></p>
-    <button onclick="logout()">خروج</button>
+    <div class="icon">🚫</div>
+    <h2>حساب شما تعلیق شده است</h2>
+    <p class="reason" id="banReason"></p>
+    <p class="time" id="banTime"></p>
+    <button class="btn btn-ghost btn-sm" style="width:auto;" onclick="logout()">خروج از حساب</button>
   </div>
 </div>
 
-<div class="container">
+<!-- ===== Auth Page ===== -->
+<div id="authPage">
+  <div class="auth-card">
+    <div class="auth-logo">💬</div>
+    <div class="auth-title">چت‌روم</div>
+    <div class="auth-sub">به جمع ما خوش آمدی</div>
 
-  <!-- صفحه ورود/ثبت‌نام -->
-  <div id="authPage">
-    <div class="card">
-      <h2 style="text-align:center;">ورود / ثبت‌نام</h2>
-      <div class="tabs">
-        <button id="tabLogin" class="active" onclick="switchAuth('login')">ورود</button>
-        <button id="tabReg" onclick="switchAuth('reg')">ثبت‌نام</button>
-      </div>
+    <div class="auth-tabs">
+      <button id="tabLogin" class="active" onclick="switchAuth('login')">ورود</button>
+      <button id="tabReg" onclick="switchAuth('reg')">ثبت‌نام</button>
+    </div>
 
-      <div id="loginForm">
-        <input id="loginUser" placeholder="نام کاربری">
-        <input id="loginPass" type="password" placeholder="رمز عبور">
-        <button onclick="doLogin()">ورود</button>
-      </div>
+    <div id="loginForm">
+      <div class="field"><input id="loginUser" placeholder="نام کاربری"></div>
+      <div class="field"><input id="loginPass" type="password" placeholder="رمز عبور"></div>
+      <button class="btn btn-primary" onclick="doLogin()">ورود به حساب</button>
+    </div>
 
-      <div id="regForm" class="hidden">
-        <input id="regUser" placeholder="نام کاربری">
-        <input id="regPass" type="password" placeholder="رمز عبور">
-        <input id="regPass2" type="password" placeholder="تکرار رمز عبور">
-        <button onclick="doRegister()">ثبت‌نام</button>
-        <div class="info">رمز: حداقل ۶ کاراکتر، شامل حروف کوچک، بزرگ و عدد</div>
+    <div id="regForm" class="hidden">
+      <div class="field"><input id="regUser" placeholder="نام کاربری"></div>
+      <div class="field"><input id="regPass" type="password" placeholder="رمز عبور"></div>
+      <div class="field"><input id="regPass2" type="password" placeholder="تکرار رمز عبور"></div>
+      <button class="btn btn-primary" onclick="doRegister()">ساخت حساب</button>
+      <div style="font-size:11px;color:var(--text-dim);text-align:center;margin-top:10px;line-height:1.8;">
+        رمز باید حداقل ۶ کاراکتر و شامل حروف کوچک، بزرگ و عدد باشد
       </div>
-      <div id="authMsg" style="color:#e94560;margin-top:8px;"></div>
+    </div>
+
+    <div id="authMsg" class="auth-msg"></div>
+  </div>
+</div>
+
+<!-- ===== Chat Page ===== -->
+<div id="chatPage" class="hidden">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="user-info">
+      <div class="avatar" id="myAvatar">?</div>
+      <div>
+        <div class="user-name" id="myName"></div>
+        <div class="user-meta" id="myRank"></div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="adminBtn" class="btn btn-ghost btn-sm hidden" onclick="openAdminPanel()">🛡️ پنل ادمین</button>
+      <button id="superBtn" class="btn btn-danger btn-sm hidden" onclick="openSuperPanel()">👑 مدیریت کل</button>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">خروج</button>
     </div>
   </div>
 
-  <!-- صفحه اصلی چت -->
-  <div id="chatPage" class="hidden">
-    <div class="card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-      <div>خوش آمدی <b id="myName"></b> <span id="myRank"></span></div>
-      <div style="display:flex;gap:6px;">
-        <button id="adminBtn" class="hidden sec" style="width:auto;" onclick="openAdminPanel()">پنل ادمین</button>
-        <button id="superBtn" class="hidden danger" style="width:auto;" onclick="openSuperPanel()">پنل مدیریت کل</button>
-        <button class="sec" style="width:auto;" onclick="logout()">خروج</button>
-      </div>
+  <!-- Chat Panel -->
+  <div class="chat-panel">
+    <div class="panel-header">
+      <div class="icon">💬</div>
+      <span>چت عمومی</span>
+      <div class="dot"></div>
     </div>
-
-    <div class="card">
-      <h3>📢 اطلاع‌رسانی</h3>
-      <div id="announceBox"></div>
-      <div id="announceInput" class="hidden">
-        <textarea id="announceText" placeholder="متن اطلاعیه..." rows="2"></textarea>
-        <button onclick="sendAnnounce()">ارسال اطلاعیه</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>💬 چت عمومی</h3>
-      <div id="chatBox" style="max-height:400px;overflow-y:auto;padding:8px;background:#0a1628;border-radius:8px;margin-bottom:10px;"></div>
-      <textarea id="msgInput" placeholder="پیامت رو بنویس..." rows="2"></textarea>
-      <button onclick="sendMsg()">ارسال</button>
+    <div class="chat-box" id="chatBox"></div>
+    <div class="chat-input-area">
+      <textarea id="msgInput" rows="1" placeholder="پیامت رو بنویس..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}"></textarea>
+      <button class="send-btn" onclick="sendMsg()">➤</button>
     </div>
   </div>
 
-  <!-- پنل ادمین -->
-  <div id="adminPanel" class="hidden">
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;">
-        <h2>🛡️ پنل ادمین</h2>
-        <button class="sec" style="width:auto;" onclick="closeAdmin()">بازگشت</button>
-      </div>
-      <input id="adminSearch" placeholder="جستجوی نام کاربری..." oninput="renderAdminUsers()">
-      <div id="adminUsersList"></div>
+  <!-- Announce Panel -->
+  <div class="announce-panel">
+    <div class="panel-header">
+      <div class="icon">📢</div>
+      <span>اطلاع‌رسانی</span>
+    </div>
+    <div class="announce-list" id="announceBox"></div>
+    <div class="announce-input hidden" id="announceInput">
+      <textarea id="announceText" rows="2" placeholder="اطلاعیه‌ات رو بنویس..."></textarea>
+      <button class="send-btn" onclick="sendAnnounce()">➤</button>
     </div>
   </div>
 
-  <!-- پنل مدیریت کل -->
-  <div id="superPanel" class="hidden">
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;">
-        <h2>👑 پنل مدیریت کل</h2>
-        <button class="sec" style="width:auto;" onclick="closeSuper()">بازگشت</button>
-      </div>
-      <div class="tabs">
-        <button id="stUsers" class="active" onclick="switchSuper('users')">کاربران</button>
-        <button id="stBans" onclick="switchSuper('bans')">تعلیق‌ها</button>
-        <button id="stRanks" onclick="switchSuper('ranks')">رنک‌ها</button>
-        <button id="stServerLog" onclick="switchSuper('slog')">لاگ سرور</button>
-        <button id="stAdminLog" onclick="switchSuper('alog')">لاگ ادمین‌ها</button>
-        <button id="stRankLog" onclick="switchSuper('rlog')">لاگ رنک‌ها</button>
-      </div>
+</div>
 
-      <div id="superContent"></div>
+<!-- ===== Admin Panel ===== -->
+<div id="adminPanel" class="fullscreen-panel hidden">
+  <div class="panel-container">
+    <div class="panel-top">
+      <h2>🛡️ پنل ادمین</h2>
+      <button class="btn btn-ghost btn-sm" onclick="closeAdmin()">بازگشت</button>
     </div>
+    <input class="search-box" id="adminSearch" placeholder="🔍 جستجوی نام کاربری..." oninput="renderAdminUsers()">
+    <div id="adminUsersList"></div>
   </div>
+</div>
 
+<!-- ===== Super Panel ===== -->
+<div id="superPanel" class="fullscreen-panel hidden">
+  <div class="panel-container">
+    <div class="panel-top">
+      <h2>👑 پنل مدیریت کل</h2>
+      <button class="btn btn-ghost btn-sm" onclick="closeSuper()">بازگشت</button>
+    </div>
+    <div class="panel-tabs">
+      <button id="stUsers" class="active" onclick="switchSuper('users')">کاربران</button>
+      <button id="stBans" onclick="switchSuper('bans')">تعلیق‌ها</button>
+      <button id="stRanks" onclick="switchSuper('ranks')">رنک‌ها</button>
+      <button id="stServerLog" onclick="switchSuper('slog')">لاگ سرور</button>
+      <button id="stAdminLog" onclick="switchSuper('alog')">لاگ ادمین‌ها</button>
+      <button id="stRankLog" onclick="switchSuper('rlog')">لاگ رنک‌ها</button>
+    </div>
+    <div id="superContent"></div>
+  </div>
 </div>
 
 <script>
@@ -155,42 +851,27 @@ const RANKS = {
 
 let DB = JSON.parse(localStorage.getItem("chatDB") || "null");
 if (!DB) {
-  DB = {
-    users: {},
-    messages: [],
-    announces: [],
-    serverLogs: [],
-    adminLogs: [],
-    rankLogs: []
-  };
-  // ساخت اکانت مدیر
+  DB = { users: {}, messages: [], announces: [], serverLogs: [], adminLogs: [], rankLogs: [] };
   DB.users[SUPER_USER] = {
-    password: SUPER_PASS,
-    rank: "admin",
-    rankExpire: null, // دائم
-    isSuper: true,
-    ban: null,
-    createdAt: Date.now()
+    password: SUPER_PASS, rank: "admin", rankExpire: null,
+    isSuper: true, ban: null, createdAt: Date.now()
   };
   save();
 }
 
 function save(){ localStorage.setItem("chatDB", JSON.stringify(DB)); }
-
 let currentUser = null;
 let refreshTimer = null;
 
 /* ================== ابزارها ================== */
 function now(){ return Date.now(); }
+function daysToMs(d){ return d * 24 * 60 * 60 * 1000; }
 
 function addLog(type, text){
-  const entry = { time: now(), text, by: currentUser || "سیستم" };
-  DB[type].unshift(entry);
+  DB[type].unshift({ time: now(), text, by: currentUser || "سیستم" });
   if (DB[type].length > 500) DB[type].pop();
   save();
 }
-
-function daysToMs(d){ return d * 24 * 60 * 60 * 1000; }
 
 function formatDuration(ms){
   if (ms <= 0) return "0";
@@ -203,34 +884,24 @@ function formatDuration(ms){
   if (d) out.push(d + " روز");
   if (h) out.push(h + " ساعت");
   if (m) out.push(m + " دقیقه");
-  if (sec && !d) out.push(sec + " ثانیه");
-  return out.join(" و ");
+  if (sec && !d && !h) out.push(sec + " ثانیه");
+  return out.join(" و ") || "0";
 }
 
-function isRankActive(user){
-  if (!user.rank) return false;
-  if (user.rankExpire === null) return true;
-  return user.rankExpire > now();
-}
+function isRankActive(u){ if(!u.rank) return false; if(u.rankExpire === null) return true; return u.rankExpire > now(); }
+function getActiveRank(u){ if(!isRankActive(u)) return "member"; return u.rank; }
+function isBanned(u){ if(!u.ban) return false; if(u.ban.permanent) return true; return u.ban.until > now(); }
 
-function getActiveRank(user){
-  if (!isRankActive(user)) return "member";
-  return user.rank;
-}
-
-function isBanned(user){
-  if (!user.ban) return false;
-  if (user.ban.permanent) return true;
-  return user.ban.until > now();
-}
-
-/* ================== اعتبارسنجی رمز ================== */
 function validatePass(p){
   if (p.length < 6) return "رمز باید حداقل ۶ کاراکتر باشد";
   if (!/[a-z]/.test(p)) return "رمز باید حروف کوچک انگلیسی داشته باشد";
   if (!/[A-Z]/.test(p)) return "رمز باید حروف بزرگ انگلیسی داشته باشد";
   if (!/[0-9]/.test(p)) return "رمز باید عدد داشته باشد";
   return null;
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 /* ================== احراز هویت ================== */
@@ -254,65 +925,43 @@ function doRegister(){
   const err = validatePass(p);
   if (err) { msg.textContent = err; return; }
 
-  DB.users[u] = {
-    password: p,
-    rank: "member",
-    rankExpire: null,
-    isSuper: false,
-    ban: null,
-    createdAt: now()
-  };
+  DB.users[u] = { password: p, rank: "member", rankExpire: null, isSuper: false, ban: null, createdAt: now() };
   save();
   addLog("serverLogs", `کاربر جدید ثبت‌نام کرد: ${u}`);
   addLog("rankLogs", `رنک member به ${u} داده شد`);
-  msg.style.color = "#27ae60";
-  msg.textContent = "ثبت‌نام موفق! حالا وارد شو";
+  msg.style.color = "#10b981";
+  msg.textContent = "✓ ثبت‌نام موفق! حالا وارد شو";
 }
 
 function doLogin(){
   const u = document.getElementById("loginUser").value.trim();
   const p = document.getElementById("loginPass").value;
   const msg = document.getElementById("authMsg");
-
   const user = DB.users[u];
   if (!user || user.password !== p) {
-    msg.style.color = "#e94560";
+    msg.style.color = "#ef4444";
     msg.textContent = "نام کاربری یا رمز اشتباه است";
     return;
   }
-  if (isBanned(user)) {
-    showBan(user);
-    return;
-  }
+  if (isBanned(user)) { showBan(user); return; }
   currentUser = u;
   addLog("serverLogs", `${u} وارد سایت شد`);
   openChat();
 }
 
 function showBan(user){
-  const ov = document.getElementById("banOverlay");
-  const r = document.getElementById("banReason");
+  document.getElementById("banReason").textContent = "دلیل: " + user.ban.reason;
   const t = document.getElementById("banTime");
-  r.textContent = "شما به دلیل: " + user.ban.reason + " تعلیق شده‌اید.";
-  if (user.ban.permanent) {
-    t.textContent = "به صورت دائم";
-  } else {
-    t.textContent = "زمان باقی‌مانده: " + formatDuration(user.ban.until - now());
-    startBanTimer(user);
+  if (user.ban.permanent) t.textContent = "⛔ تعلیق دائم";
+  else {
+    t.textContent = "⏳ زمان باقی‌مانده: " + formatDuration(user.ban.until - now());
+    if (refreshTimer) clearInterval(refreshTimer);
+    refreshTimer = setInterval(() => {
+      if (!isBanned(user)) { clearInterval(refreshTimer); document.getElementById("banOverlay").classList.add("hidden"); return; }
+      t.textContent = "⏳ زمان باقی‌مانده: " + formatDuration(user.ban.until - now());
+    }, 1000);
   }
-  ov.classList.remove("hidden");
-}
-
-function startBanTimer(user){
-  if (refreshTimer) clearInterval(refreshTimer);
-  refreshTimer = setInterval(() => {
-    if (!isBanned(user)) {
-      clearInterval(refreshTimer);
-      document.getElementById("banOverlay").classList.add("hidden");
-      return;
-    }
-    document.getElementById("banTime").textContent = "زمان باقی‌مانده: " + formatDuration(user.ban.until - now());
-  }, 1000);
+  document.getElementById("banOverlay").classList.remove("hidden");
 }
 
 function logout(){
@@ -336,13 +985,12 @@ function openChat(){
   const rankInfo = RANKS[rank];
 
   document.getElementById("myName").textContent = currentUser;
+  document.getElementById("myAvatar").textContent = currentUser.charAt(0).toUpperCase();
   document.getElementById("myRank").innerHTML = `<span class="rank ${rankInfo.color}">${rankInfo.label}</span>`;
 
-  // دکمه‌های پنل
   document.getElementById("adminBtn").classList.toggle("hidden", rank !== "admin");
   document.getElementById("superBtn").classList.toggle("hidden", !user.isSuper);
 
-  // اطلاع‌رسانی - امکان ارسال
   const canAnnounce = (rank === "admin" || rank === "streamer");
   document.getElementById("announceInput").classList.toggle("hidden", !canAnnounce);
 
@@ -354,7 +1002,6 @@ function openChat(){
 function startAutoRefresh(){
   if (refreshTimer) clearInterval(refreshTimer);
   refreshTimer = setInterval(() => {
-    // چک بن شدن خودم
     const me = DB.users[currentUser];
     if (me && isBanned(me)) { showBan(me); return; }
     renderMessages();
@@ -366,14 +1013,8 @@ function startAutoRefresh(){
 function sendAnnounce(){
   const txt = document.getElementById("announceText").value.trim();
   if (!txt) return;
-  const user = DB.users[currentUser];
-  const rank = getActiveRank(user);
-  DB.announces.unshift({
-    text: txt,
-    by: currentUser,
-    rank: rank,
-    time: now()
-  });
+  const rank = getActiveRank(DB.users[currentUser]);
+  DB.announces.unshift({ text: txt, by: currentUser, rank, time: now() });
   save();
   addLog("serverLogs", `${currentUser} اطلاعیه فرستاد: ${txt}`);
   document.getElementById("announceText").value = "";
@@ -382,32 +1023,35 @@ function sendAnnounce(){
 
 function renderAnnounces(){
   const box = document.getElementById("announceBox");
-  if (!DB.announces.length) { box.innerHTML = "<div class='info'>اطلاعیه‌ای نیست</div>"; return; }
-  box.innerHTML = DB.announces.slice(0,10).map(a => {
+  if (!DB.announces.length) {
+    box.innerHTML = `<div class="announce-empty"><span class="big">📭</span>هنوز اطلاعیه‌ای ارسال نشده</div>`;
+    return;
+  }
+  box.innerHTML = DB.announces.slice(0, 20).map(a => {
     const ri = RANKS[a.rank] || RANKS.member;
-    return `<div class="msg">
-      <div class="head"><span class="name">${a.by}</span><span class="rank ${ri.color}">${ri.label}</span></div>
-      <div>${escapeHtml(a.text)}</div>
+    return `<div class="announce-item">
+      <div class="a-head">
+        <span class="name">${escapeHtml(a.by)}</span>
+        <span class="rank ${ri.color}">${ri.label}</span>
+      </div>
+      <div class="a-body">${escapeHtml(a.text)}</div>
     </div>`;
   }).join("");
 }
 
 /* ================== چت ================== */
 function sendMsg(){
-  const txt = document.getElementById("msgInput").value.trim();
+  const el = document.getElementById("msgInput");
+  const txt = el.value.trim();
   if (!txt) return;
-  const user = DB.users[currentUser];
-  const rank = getActiveRank(user);
+  const rank = getActiveRank(DB.users[currentUser]);
   DB.messages.push({
     id: "m" + now() + Math.random(),
-    user: currentUser,
-    rank: rank,
-    text: txt,
-    time: now()
+    user: currentUser, rank, text: txt, time: now()
   });
   if (DB.messages.length > 300) DB.messages.shift();
   save();
-  document.getElementById("msgInput").value = "";
+  el.value = "";
   renderMessages();
 }
 
@@ -420,16 +1064,20 @@ function renderMessages(){
 
   box.innerHTML = DB.messages.map(m => {
     const ri = RANKS[m.rank] || RANKS.member;
+    const own = m.user === currentUser;
     let actions = "";
-    if (canDelete || canBan) {
-      actions = `<div style="margin-top:4px;display:flex;gap:4px;">
-        ${canDelete ? `<button class="danger" style="width:auto;padding:2px 8px;font-size:11px;" onclick="delMsg('${m.id}')">حذف</button>` : ""}
-        ${canBan && m.user !== currentUser ? `<button class="danger" style="width:auto;padding:2px 8px;font-size:11px;" onclick="quickBan('${m.user}')">تعلیق</button>` : ""}
-      </div>`;
+    if (canDelete || (canBan && !own)) {
+      const btns = [];
+      if (canDelete) btns.push(`<button onclick="delMsg('${m.id}')">حذف</button>`);
+      if (canBan && !own) btns.push(`<button onclick="quickBan('${m.user}')">تعلیق</button>`);
+      if (btns.length) actions = `<div class="msg-actions">${btns.join("")}</div>`;
     }
-    return `<div class="msg">
-      <div class="head"><span class="name">${m.user}</span><span class="rank ${ri.color}">${ri.label}</span></div>
-      <div>${escapeHtml(m.text)}</div>
+    return `<div class="msg-row ${own?'own':'other'}">
+      <div class="msg-head">
+        <span class="name">${escapeHtml(m.user)}</span>
+        <span class="rank ${ri.color}">${ri.label}</span>
+      </div>
+      <div class="bubble">${escapeHtml(m.text)}</div>
       ${actions}
     </div>`;
   }).join("");
@@ -450,12 +1098,8 @@ function quickBan(target){
   if (!days || days < 1 || days > 30) { alert("فقط بین 1 تا 30 روز"); return; }
   DB.users[target].ban = { reason, until: now() + daysToMs(days), permanent: false, by: currentUser };
   save();
-  addLog("adminLogs", `${currentUser} کاربر ${target} را به مدت ${days} روز تعلیق کرد - دلیل: ${reason}`);
+  addLog("adminLogs", `${currentUser} ${target} را ${days} روز تعلیق کرد - دلیل: ${reason}`);
   renderMessages();
-}
-
-function escapeHtml(s){
-  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 /* ================== پنل ادمین ================== */
@@ -473,29 +1117,30 @@ function renderAdminUsers(){
   const q = document.getElementById("adminSearch").value.trim().toLowerCase();
   const list = document.getElementById("adminUsersList");
   const entries = Object.entries(DB.users).filter(([u]) => u.toLowerCase().includes(q));
-  if (!entries.length) { list.innerHTML = "<div class='info'>کاربری یافت نشد</div>"; return; }
-
+  if (!entries.length) {
+    list.innerHTML = `<div class="empty-state"><span class="big">🔍</span>کاربری یافت نشد</div>`;
+    return;
+  }
   list.innerHTML = entries.map(([u, data]) => {
     const rank = getActiveRank(data);
     const ri = RANKS[rank];
     const banned = isBanned(data);
     let banInfo = "";
     if (banned) {
-      banInfo = data.ban.permanent 
-        ? `<div class="info" style="color:#e94560;">تعلیق دائم - دلیل: ${data.ban.reason} - توسط: ${data.ban.by||"?"}</div>`
-        : `<div class="info" style="color:#e94560;">تعلیق تا ${formatDuration(data.ban.until-now())} - دلیل: ${data.ban.reason} - توسط: ${data.ban.by||"?"}</div>`;
+      banInfo = data.ban.permanent
+        ? `<div class="row-info" style="color:#fca5a5;">⛔ تعلیق دائم — دلیل: ${escapeHtml(data.ban.reason)} — توسط: ${escapeHtml(data.ban.by||"?")}</div>`
+        : `<div class="row-info" style="color:#fca5a5;">⏳ تعلیق تا ${formatDuration(data.ban.until-now())} — دلیل: ${escapeHtml(data.ban.reason)} — توسط: ${escapeHtml(data.ban.by||"?")}</div>`;
     }
-    // فقط بن‌هایی که خود ادمین فعلی ایجاد کرده رو می‌تونه برداره
     const canUnban = banned && data.ban.by === currentUser;
-    return `<div class="card" style="background:#0a1628;">
-      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-        <div><b>${u}</b> <span class="rank ${ri.color}">${ri.label}</span></div>
-        <div style="font-size:12px;">${data.isSuper ? "👑 مدیر کل" : ""}</div>
+    return `<div class="user-row">
+      <div class="row-head">
+        <div class="row-name">${escapeHtml(u)} <span class="rank ${ri.color}">${ri.label}</span></div>
+        <div style="font-size:12px;color:var(--text-dim);">${data.isSuper ? "👑 مدیر کل" : ""}</div>
       </div>
       ${banInfo}
-      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;">
-        ${!banned ? `<button class="danger" style="width:auto;padding:5px 10px;font-size:12px;" onclick="adminBan('${u}')">تعلیق (1-30 روز)</button>` : ""}
-        ${canUnban ? `<button class="ok" style="width:auto;padding:5px 10px;font-size:12px;" onclick="adminUnban('${u}')">رفع تعلیق</button>` : ""}
+      <div class="row-actions">
+        ${!banned ? `<button class="b-red" onclick="adminBan('${u}')">تعلیق (1-30 روز)</button>` : ""}
+        ${canUnban ? `<button class="b-green" onclick="adminUnban('${u}')">رفع تعلیق</button>` : ""}
       </div>
     </div>`;
   }).join("");
@@ -509,15 +1154,14 @@ function adminBan(target){
   if (!days || days < 1 || days > 30) { alert("فقط بین 1 تا 30 روز"); return; }
   DB.users[target].ban = { reason, until: now() + daysToMs(days), permanent: false, by: currentUser };
   save();
-  addLog("adminLogs", `${currentUser} کاربر ${target} را به مدت ${days} روز تعلیق کرد - دلیل: ${reason}`);
+  addLog("adminLogs", `${currentUser} ${target} را ${days} روز تعلیق کرد - دلیل: ${reason}`);
   renderAdminUsers();
 }
 
 function adminUnban(target){
   const u = DB.users[target];
   if (!u.ban || u.ban.by !== currentUser) { alert("فقط می‌توانی تعلیق‌هایی که خودت ایجاد کردی را برداری"); return; }
-  u.ban = null;
-  save();
+  u.ban = null; save();
   addLog("adminLogs", `${currentUser} تعلیق ${target} را برداشت`);
   renderAdminUsers();
 }
@@ -536,11 +1180,6 @@ function closeSuper(){
 let currentSuperTab = "users";
 function switchSuper(tab){
   currentSuperTab = tab;
-  ["users","bans","ranks","slog","alog","rlog"].forEach(t => {
-    const btn = document.getElementById("st" + t.charAt(0).toUpperCase() + t.slice(1));
-    if (btn) btn.classList.toggle("active", t === tab);
-  });
-  // اصلاح نام دکمه‌ها
   document.getElementById("stUsers").classList.toggle("active", tab==="users");
   document.getElementById("stBans").classList.toggle("active", tab==="bans");
   document.getElementById("stRanks").classList.toggle("active", tab==="ranks");
@@ -558,16 +1197,18 @@ function renderSuper(){
     box.innerHTML = Object.entries(DB.users).map(([u, d]) => {
       const rank = getActiveRank(d);
       const ri = RANKS[rank];
-      return `<div class="card" style="background:#0a1628;">
-        <div><b>${u}</b> <span class="rank ${ri.color}">${ri.label}</span> ${d.isSuper?"👑":""}</div>
-        <div class="info">رمز: <span style="color:#ffd369;">${d.password}</span></div>
-        <div class="info">تعلیق: ${isBanned(d) ? (d.ban.permanent?"دائم":"تا " + formatDuration(d.ban.until-now())) : "ندارد"}</div>
-        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;">
-          <button class="sec" style="width:auto;padding:5px 10px;font-size:12px;" onclick="superChangePass('${u}')">تغییر رمز</button>
-          <button class="sec" style="width:auto;padding:5px 10px;font-size:12px;" onclick="superGiveRank('${u}')">دادن رنک</button>
-          <button class="sec" style="width:auto;padding:5px 10px;font-size:12px;" onclick="superRemoveRank('${u}')">حذف رنک</button>
-          ${!d.isSuper ? `<button class="danger" style="width:auto;padding:5px 10px;font-size:12px;" onclick="superBan('${u}')">تعلیق</button>` : ""}
-          ${isBanned(d) ? `<button class="ok" style="width:auto;padding:5px 10px;font-size:12px;" onclick="superUnban('${u}')">رفع تعلیق</button>` : ""}
+      return `<div class="user-row">
+        <div class="row-head">
+          <div class="row-name">${escapeHtml(u)} <span class="rank ${ri.color}">${ri.label}</span> ${d.isSuper?"👑":""}</div>
+        </div>
+        <div class="row-info">🔑 رمز: <b>${escapeHtml(d.password)}</b></div>
+        <div class="row-info">تعلیق: ${isBanned(d) ? (d.ban.permanent?"دائم":"تا " + formatDuration(d.ban.until-now())) : "ندارد"}</div>
+        <div class="row-actions">
+          <button class="b-sec" onclick="superChangePass('${u}')">تغییر رمز</button>
+          <button class="b-sec" onclick="superGiveRank('${u}')">دادن رنک</button>
+          <button class="b-sec" onclick="superRemoveRank('${u}')">حذف رنک</button>
+          ${!d.isSuper ? `<button class="b-red" onclick="superBan('${u}')">تعلیق</button>` : ""}
+          ${isBanned(d) ? `<button class="b-green" onclick="superUnban('${u}')">رفع تعلیق</button>` : ""}
         </div>
       </div>`;
     }).join("");
@@ -575,51 +1216,45 @@ function renderSuper(){
 
   else if (tab === "bans"){
     const banned = Object.entries(DB.users).filter(([u,d]) => isBanned(d));
-    if (!banned.length) { box.innerHTML = "<div class='info'>کسی تعلیق نیست</div>"; return; }
+    if (!banned.length) { box.innerHTML = `<div class="empty-state"><span class="big">✨</span>هیچ کاربری تعلیق نیست</div>`; return; }
     box.innerHTML = banned.map(([u,d]) => {
       const b = d.ban;
-      const timeText = b.permanent ? "دائم" : formatDuration(b.until - now());
-      return `<div class="card" style="background:#0a1628;">
-        <div><b>${u}</b></div>
-        <div class="info">دلیل: ${b.reason}</div>
-        <div class="info">مدت باقی‌مانده: ${timeText}</div>
-        <div class="info">توسط: ${b.by || "?"}</div>
-        <button class="ok" style="width:auto;padding:5px 10px;font-size:12px;margin-top:5px;" onclick="superUnban('${u}')">رفع تعلیق</button>
+      const t = b.permanent ? "دائم" : formatDuration(b.until - now());
+      return `<div class="ban-row">
+        <div class="row-head"><div class="row-name">${escapeHtml(u)}</div></div>
+        <div class="row-info">📝 دلیل: ${escapeHtml(b.reason)}</div>
+        <div class="row-info">⏳ مدت: ${t}</div>
+        <div class="row-info">👤 توسط: ${escapeHtml(b.by||"?")}</div>
+        <div class="row-actions"><button class="b-green" onclick="superUnban('${u}')">رفع تعلیق</button></div>
       </div>`;
     }).join("");
   }
 
   else if (tab === "ranks"){
-    box.innerHTML = Object.entries(DB.users).map(([u,d]) => {
-      if (!isRankActive(d) && d.rank === "member") return "";
+    const ranked = Object.entries(DB.users).filter(([u,d]) => getActiveRank(d) !== "member");
+    if (!ranked.length) { box.innerHTML = `<div class="empty-state"><span class="big">🏅</span>هیچ کاربری رنک ویژه ندارد</div>`; return; }
+    box.innerHTML = ranked.map(([u,d]) => {
       const rank = getActiveRank(d);
       const ri = RANKS[rank];
       const exp = d.rankExpire === null ? "دائم" : formatDuration(d.rankExpire - now());
-      return `<div class="card" style="background:#0a1628;">
-        <div><b>${u}</b> <span class="rank ${ri.color}">${ri.label}</span></div>
-        <div class="info">انقضا: ${exp}</div>
-        ${rank !== "member" ? `<button class="danger" style="width:auto;padding:5px 10px;font-size:12px;" onclick="superRemoveRank('${u}')">حذف رنک</button>` : ""}
+      return `<div class="rank-row">
+        <div class="row-head"><div class="row-name">${escapeHtml(u)} <span class="rank ${ri.color}">${ri.label}</span></div></div>
+        <div class="row-info">⏰ انقضا: ${exp}</div>
+        <div class="row-actions"><button class="b-red" onclick="superRemoveRank('${u}')">حذف رنک</button></div>
       </div>`;
     }).join("");
   }
 
-  else if (tab === "slog"){
-    box.innerHTML = DB.serverLogs.length ? DB.serverLogs.slice(0,100).map(l => 
-      `<div class="log-entry">[${new Date(l.time).toLocaleString("fa-IR")}] ${l.text}</div>`
-    ).join("") : "<div class='info'>لاگی نیست</div>";
-  }
+  else if (tab === "slog") box.innerHTML = renderLogs(DB.serverLogs, "لاگ سرور خالی است");
+  else if (tab === "alog") box.innerHTML = renderLogs(DB.adminLogs, "لاگ ادمین‌ها خالی است");
+  else if (tab === "rlog") box.innerHTML = renderLogs(DB.rankLogs, "لاگ رنک‌ها خالی است");
+}
 
-  else if (tab === "alog"){
-    box.innerHTML = DB.adminLogs.length ? DB.adminLogs.slice(0,100).map(l => 
-      `<div class="log-entry">[${new Date(l.time).toLocaleString("fa-IR")}] ${l.text}</div>`
-    ).join("") : "<div class='info'>لاگی نیست</div>";
-  }
-
-  else if (tab === "rlog"){
-    box.innerHTML = DB.rankLogs.length ? DB.rankLogs.slice(0,100).map(l => 
-      `<div class="log-entry">[${new Date(l.time).toLocaleString("fa-IR")}] ${l.text}</div>`
-    ).join("") : "<div class='info'>لاگی نیست</div>";
-  }
+function renderLogs(arr, emptyTxt){
+  if (!arr.length) return `<div class="empty-state"><span class="big">📋</span>${emptyTxt}</div>`;
+  return arr.slice(0, 150).map(l =>
+    `<div class="log-line">[${new Date(l.time).toLocaleString("fa-IR")}] ${escapeHtml(l.text)}</div>`
+  ).join("");
 }
 
 function superChangePass(target){
@@ -627,16 +1262,14 @@ function superChangePass(target){
   if (!np) return;
   const err = validatePass(np);
   if (err) { alert(err); return; }
-  DB.users[target].password = np;
-  save();
+  DB.users[target].password = np; save();
   addLog("adminLogs", `${currentUser} رمز ${target} را تغییر داد`);
   renderSuper();
 }
 
 function superGiveRank(target){
-  const rank = prompt("رنک (admin/streamer/vip/gold):");
+  const rank = prompt("رنک (admin / streamer / vip / gold):");
   if (!RANKS[rank]) { alert("رنک نامعتبر"); return; }
-  if (rank === "admin" && !DB.users[currentUser].isSuper) { alert("فقط مدیر کل می‌تواند ادمین بدهد"); return; }
   const days = prompt("مدت (روز، 1-365) یا 'd' برای دائم:");
   let expire = null;
   if (days !== "d") {
@@ -673,21 +1306,16 @@ function superBan(target){
     if (!n || n < 1 || n > 365) { alert("بین 1 تا 365 یا perm"); return; }
     ban = { reason, permanent: false, until: now() + daysToMs(n), by: currentUser };
   }
-  DB.users[target].ban = ban;
-  save();
+  DB.users[target].ban = ban; save();
   addLog("adminLogs", `${currentUser} ${target} را تعلیق کرد - دلیل: ${reason} - ${ban.permanent?"دائم":formatDuration(ban.until-now())}`);
   renderSuper();
 }
 
 function superUnban(target){
-  DB.users[target].ban = null;
-  save();
+  DB.users[target].ban = null; save();
   addLog("adminLogs", `${currentUser} تعلیق ${target} را برداشت`);
   renderSuper();
 }
-
-/* ================== راه‌اندازی ================== */
-// اگر قبلاً لاگین کرده بودیم
 </script>
 
 </body>
