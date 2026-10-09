@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>سایت چت</title>
+<style>
+  * { box-sizing: border-box; font-family: Tahoma, sans-serif; }
+  body { margin: 0; background: #1a1a2e; color: #eee; min-height: 100vh; }
+  .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+  .card { background: #16213e; border-radius: 10px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+  input, textarea, select, button { width: 100%; padding: 10px; margin: 5px 0; border-radius: 6px; border: 1px solid #0f3460; background: #0f3460; color: #fff; font-family: inherit; }
+  button { background: #e94560; cursor: pointer; border: none; font-weight: bold; transition: 0.2s; }
+  button:hover { background: #ff5c7a; }
+  button.sec { background: #533483; }
+  button.sec:hover { background: #6b44a8; }
+  button.danger { background: #c0392b; }
+  button.ok { background: #27ae60; }
+  .hidden { display: none !important; }
+  h2, h3 { color: #e94560; }
+  .msg { background: #0f3460; padding: 8px 12px; border-radius: 8px; margin: 8px 0; word-wrap: break-word; }
+  .msg .head { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; font-size: 13px; }
+  .msg .name { color: #ffd369; font-weight: bold; }
+  .rank { padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: bold; color: #fff; }
+  .rank.admin { background: #e74c3c; }
+  .rank.streamer { background: #9b59b6; }
+  .rank.vip { background: #2ecc71; }
+  .rank.gold { background: #d4af37; color: #000; }
+  .rank.member { background: #7f8c8d; }
+  .tabs { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; }
+  .tabs button { width: auto; padding: 8px 14px; margin: 0; }
+  .tabs button.active { background: #e94560; }
+  .tabs button:not(.active) { background: #0f3460; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 8px; border-bottom: 1px solid #0f3460; text-align: right; }
+  th { color: #e94560; }
+  .info { font-size: 12px; color: #aaa; margin: 4px 0; }
+  .ban-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .ban-box { background: #16213e; padding: 30px; border-radius: 12px; max-width: 500px; text-align: center; border: 2px solid #e94560; }
+  .log-entry { font-size: 12px; padding: 6px; border-bottom: 1px solid #0f3460; }
+</style>
+</head>
+<body>
+
+<div id="banOverlay" class="ban-overlay hidden">
+  <div class="ban-box">
+    <h2>🚫 شما تعلیق شده‌اید</h2>
+    <p id="banReason"></p>
+    <p id="banTime" style="color:#e94560;font-weight:bold;"></p>
+    <button onclick="logout()">خروج</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- صفحه ورود/ثبت‌نام -->
+  <div id="authPage">
+    <div class="card">
+      <h2 style="text-align:center;">ورود / ثبت‌نام</h2>
+      <div class="tabs">
+        <button id="tabLogin" class="active" onclick="switchAuth('login')">ورود</button>
+        <button id="tabReg" onclick="switchAuth('reg')">ثبت‌نام</button>
+      </div>
+
+      <div id="loginForm">
+        <input id="loginUser" placeholder="نام کاربری">
+        <input id="loginPass" type="password" placeholder="رمز عبور">
+        <button onclick="doLogin()">ورود</button>
+      </div>
+
+      <div id="regForm" class="hidden">
+        <input id="regUser" placeholder="نام کاربری">
+        <input id="regPass" type="password" placeholder="رمز عبور">
+        <input id="regPass2" type="password" placeholder="تکرار رمز عبور">
+        <button onclick="doRegister()">ثبت‌نام</button>
+        <div class="info">رمز: حداقل ۶ کاراکتر، شامل حروف کوچک، بزرگ و عدد</div>
+      </div>
+      <div id="authMsg" style="color:#e94560;margin-top:8px;"></div>
+    </div>
+  </div>
+
+  <!-- صفحه اصلی چت -->
+  <div id="chatPage" class="hidden">
+    <div class="card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+      <div>خوش آمدی <b id="myName"></b> <span id="myRank"></span></div>
+      <div style="display:flex;gap:6px;">
+        <button id="adminBtn" class="hidden sec" style="width:auto;" onclick="openAdminPanel()">پنل ادمین</button>
+        <button id="superBtn" class="hidden danger" style="width:auto;" onclick="openSuperPanel()">پنل مدیریت کل</button>
+        <button class="sec" style="width:auto;" onclick="logout()">خروج</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📢 اطلاع‌رسانی</h3>
+      <div id="announceBox"></div>
+      <div id="announceInput" class="hidden">
+        <textarea id="announceText" placeholder="متن اطلاعیه..." rows="2"></textarea>
+        <button onclick="sendAnnounce()">ارسال اطلاعیه</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>💬 چت عمومی</h3>
+      <div id="chatBox" style="max-height:400px;overflow-y:auto;padding:8px;background:#0a1628;border-radius:8px;margin-bottom:10px;"></div>
+      <textarea id="msgInput" placeholder="پیامت رو بنویس..." rows="2"></textarea>
+      <button onclick="sendMsg()">ارسال</button>
+    </div>
+  </div>
+
+  <!-- پنل ادمین -->
+  <div id="adminPanel" class="hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;">
+        <h2>🛡️ پنل ادمین</h2>
+        <button class="sec" style="width:auto;" onclick="closeAdmin()">بازگشت</button>
+      </div>
+      <input id="adminSearch" placeholder="جستجوی نام کاربری..." oninput="renderAdminUsers()">
+      <div id="adminUsersList"></div>
+    </div>
+  </div>
+
+  <!-- پنل مدیریت کل -->
+  <div id="superPanel" class="hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;">
+        <h2>👑 پنل مدیریت کل</h2>
+        <button class="sec" style="width:auto;" onclick="closeSuper()">بازگشت</button>
+      </div>
+      <div class="tabs">
+        <button id="stUsers" class="active" onclick="switchSuper('users')">کاربران</button>
+        <button id="stBans" onclick="switchSuper('bans')">تعلیق‌ها</button>
+        <button id="stRanks" onclick="switchSuper('ranks')">رنک‌ها</button>
+        <button id="stServerLog" onclick="switchSuper('slog')">لاگ سرور</button>
+        <button id="stAdminLog" onclick="switchSuper('alog')">لاگ ادمین‌ها</button>
+        <button id="stRankLog" onclick="switchSuper('rlog')">لاگ رنک‌ها</button>
+      </div>
+
+      <div id="superContent"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ================== داده‌ها ================== */
+const SUPER_USER = "shahab20001392";
+const SUPER_PASS = "shahaB502619972013";
+
+const RANKS = {
+  admin:    { color: "admin",    label: "ادمین",   priority: 100 },
+  streamer: { color: "streamer", label: "استریمر", priority: 300 },
+  vip:      { color: "vip",      label: "VIP",     priority: 99  },
+  gold:     { color: "gold",     label: "گلد",     priority: 98  },
+  member:   { color: "member",   label: "عضو",     priority: 44  }
+};
+
+let DB = JSON.parse(localStorage.getItem("chatDB") || "null");
+if (!DB) {
+  DB = {
+    users: {},
+    messages: [],
+    announces: [],
+    serverLogs: [],
+    adminLogs: [],
+    rankLogs: []
+  };
+  // ساخت اکانت مدیر
+  DB.users[SUPER_USER] = {
+    password: SUPER_PASS,
+    rank: "admin",
+    rankExpire: null, // دائم
+    isSuper: true,
+    ban: null,
+    createdAt: Date.now()
+  };
+  save();
+}
+
+function save(){ localStorage.setItem("chatDB", JSON.stringify(DB)); }
+
+let currentUser = null;
+let refreshTimer = null;
+
+/* ================== ابزارها ================== */
+function now(){ return Date.now(); }
+
+function addLog(type, text){
+  const entry = { time: now(), text, by: currentUser || "سیستم" };
+  DB[type].unshift(entry);
+  if (DB[type].length > 500) DB[type].pop();
+  save();
+}
+
+function daysToMs(d){ return d * 24 * 60 * 60 * 1000; }
+
+function formatDuration(ms){
+  if (ms <= 0) return "0";
+  const s = Math.floor(ms/1000);
+  const d = Math.floor(s/86400);
+  const h = Math.floor((s%86400)/3600);
+  const m = Math.floor((s%3600)/60);
+  const sec = s%60;
+  let out = [];
+  if (d) out.push(d + " روز");
+  if (h) out.push(h + " ساعت");
+  if (m) out.push(m + " دقیقه");
+  if (sec && !d) out.push(sec + " ثانیه");
+  return out.join(" و ");
+}
+
+function isRankActive(user){
+  if (!user.rank) return false;
+  if (user.rankExpire === null) return true;
+  return user.rankExpire > now();
+}
+
+function getActiveRank(user){
+  if (!isRankActive(user)) return "member";
+  return user.rank;
+}
+
+function isBanned(user){
+  if (!user.ban) return false;
+  if (user.ban.permanent) return true;
+  return user.ban.until > now();
+}
+
+/* ================== اعتبارسنجی رمز ================== */
+function validatePass(p){
+  if (p.length < 6) return "رمز باید حداقل ۶ کاراکتر باشد";
+  if (!/[a-z]/.test(p)) return "رمز باید حروف کوچک انگلیسی داشته باشد";
+  if (!/[A-Z]/.test(p)) return "رمز باید حروف بزرگ انگلیسی داشته باشد";
+  if (!/[0-9]/.test(p)) return "رمز باید عدد داشته باشد";
+  return null;
+}
+
+/* ================== احراز هویت ================== */
+function switchAuth(t){
+  document.getElementById("tabLogin").classList.toggle("active", t==="login");
+  document.getElementById("tabReg").classList.toggle("active", t==="reg");
+  document.getElementById("loginForm").classList.toggle("hidden", t!=="login");
+  document.getElementById("regForm").classList.toggle("hidden", t!=="reg");
+  document.getElementById("authMsg").textContent = "";
+}
+
+function doRegister(){
+  const u = document.getElementById("regUser").value.trim();
+  const p = document.getElementById("regPass").value;
+  const p2 = document.getElementById("regPass2").value;
+  const msg = document.getElementById("authMsg");
+
+  if (!u || !p) { msg.textContent = "همه فیلدها را پر کن"; return; }
+  if (DB.users[u]) { msg.textContent = "این نام کاربری قبلاً ثبت شده! لطفاً وارد شو"; return; }
+  if (p !== p2) { msg.textContent = "تکرار رمز مطابقت ندارد"; return; }
+  const err = validatePass(p);
+  if (err) { msg.textContent = err; return; }
+
+  DB.users[u] = {
+    password: p,
+    rank: "member",
+    rankExpire: null,
+    isSuper: false,
+    ban: null,
+    createdAt: now()
+  };
+  save();
+  addLog("serverLogs", `کاربر جدید ثبت‌نام کرد: ${u}`);
+  addLog("rankLogs", `رنک member به ${u} داده شد`);
+  msg.style.color = "#27ae60";
+  msg.textContent = "ثبت‌نام موفق! حالا وارد شو";
+}
+
+function doLogin(){
+  const u = document.getElementById("loginUser").value.trim();
+  const p = document.getElementById("loginPass").value;
+  const msg = document.getElementById("authMsg");
+
+  const user = DB.users[u];
+  if (!user || user.password !== p) {
+    msg.style.color = "#e94560";
+    msg.textContent = "نام کاربری یا رمز اشتباه است";
+    return;
+  }
+  if (isBanned(user)) {
+    showBan(user);
+    return;
+  }
+  currentUser = u;
+  addLog("serverLogs", `${u} وارد سایت شد`);
+  openChat();
+}
+
+function showBan(user){
+  const ov = document.getElementById("banOverlay");
+  const r = document.getElementById("banReason");
+  const t = document.getElementById("banTime");
+  r.textContent = "شما به دلیل: " + user.ban.reason + " تعلیق شده‌اید.";
+  if (user.ban.permanent) {
+    t.textContent = "به صورت دائم";
+  } else {
+    t.textContent = "زمان باقی‌مانده: " + formatDuration(user.ban.until - now());
+    startBanTimer(user);
+  }
+  ov.classList.remove("hidden");
+}
+
+function startBanTimer(user){
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(() => {
+    if (!isBanned(user)) {
+      clearInterval(refreshTimer);
+      document.getElementById("banOverlay").classList.add("hidden");
+      return;
+    }
+    document.getElementById("banTime").textContent = "زمان باقی‌مانده: " + formatDuration(user.ban.until - now());
+  }, 1000);
+}
+
+function logout(){
+  if (currentUser) addLog("serverLogs", `${currentUser} خارج شد`);
+  currentUser = null;
+  if (refreshTimer) clearInterval(refreshTimer);
+  document.getElementById("banOverlay").classList.add("hidden");
+  document.getElementById("authPage").classList.remove("hidden");
+  document.getElementById("chatPage").classList.add("hidden");
+  document.getElementById("adminPanel").classList.add("hidden");
+  document.getElementById("superPanel").classList.add("hidden");
+}
+
+/* ================== صفحه چت ================== */
+function openChat(){
+  document.getElementById("authPage").classList.add("hidden");
+  document.getElementById("chatPage").classList.remove("hidden");
+
+  const user = DB.users[currentUser];
+  const rank = getActiveRank(user);
+  const rankInfo = RANKS[rank];
+
+  document.getElementById("myName").textContent = currentUser;
+  document.getElementById("myRank").innerHTML = `<span class="rank ${rankInfo.color}">${rankInfo.label}</span>`;
+
+  // دکمه‌های پنل
+  document.getElementById("adminBtn").classList.toggle("hidden", rank !== "admin");
+  document.getElementById("superBtn").classList.toggle("hidden", !user.isSuper);
+
+  // اطلاع‌رسانی - امکان ارسال
+  const canAnnounce = (rank === "admin" || rank === "streamer");
+  document.getElementById("announceInput").classList.toggle("hidden", !canAnnounce);
+
+  renderAnnounces();
+  renderMessages();
+  startAutoRefresh();
+}
+
+function startAutoRefresh(){
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(() => {
+    // چک بن شدن خودم
+    const me = DB.users[currentUser];
+    if (me && isBanned(me)) { showBan(me); return; }
+    renderMessages();
+    renderAnnounces();
+  }, 2000);
+}
+
+/* ================== اطلاع‌رسانی ================== */
+function sendAnnounce(){
+  const txt = document.getElementById("announceText").value.trim();
+  if (!txt) return;
+  const user = DB.users[currentUser];
+  const rank = getActiveRank(user);
+  DB.announces.unshift({
+    text: txt,
+    by: currentUser,
+    rank: rank,
+    time: now()
+  });
+  save();
+  addLog("serverLogs", `${currentUser} اطلاعیه فرستاد: ${txt}`);
+  document.getElementById("announceText").value = "";
+  renderAnnounces();
+}
+
+function renderAnnounces(){
+  const box = document.getElementById("announceBox");
+  if (!DB.announces.length) { box.innerHTML = "<div class='info'>اطلاعیه‌ای نیست</div>"; return; }
+  box.innerHTML = DB.announces.slice(0,10).map(a => {
+    const ri = RANKS[a.rank] || RANKS.member;
+    return `<div class="msg">
+      <div class="head"><span class="name">${a.by}</span><span class="rank ${ri.color}">${ri.label}</span></div>
+      <div>${escapeHtml(a.text)}</div>
+    </div>`;
+  }).join("");
+}
+
+/* ================== چت ================== */
+function sendMsg(){
+  const txt = document.getElementById("msgInput").value.trim();
+  if (!txt) return;
+  const user = DB.users[currentUser];
+  const rank = getActiveRank(user);
+  DB.messages.push({
+    id: "m" + now() + Math.random(),
+    user: currentUser,
+    rank: rank,
+    text: txt,
+    time: now()
+  });
+  if (DB.messages.length > 300) DB.messages.shift();
+  save();
+  document.getElementById("msgInput").value = "";
+  renderMessages();
+}
+
+function renderMessages(){
+  const box = document.getElementById("chatBox");
+  const user = DB.users[currentUser];
+  const rank = getActiveRank(user);
+  const canDelete = (rank === "admin");
+  const canBan = (rank === "admin");
+
+  box.innerHTML = DB.messages.map(m => {
+    const ri = RANKS[m.rank] || RANKS.member;
+    let actions = "";
+    if (canDelete || canBan) {
+      actions = `<div style="margin-top:4px;display:flex;gap:4px;">
+        ${canDelete ? `<button class="danger" style="width:auto;padding:2px 8px;font-size:11px;" onclick="delMsg('${m.id}')">حذف</button>` : ""}
+        ${canBan && m.user !== currentUser ? `<button class="danger" style="width:auto;padding:2px 8px;font-size:11px;" onclick="quickBan('${m.user}')">تعلیق</button>` : ""}
+      </div>`;
+    }
+    return `<div class="msg">
+      <div class="head"><span class="name">${m.user}</span><span class="rank ${ri.color}">${ri.label}</span></div>
+      <div>${escapeHtml(m.text)}</div>
+      ${actions}
+    </div>`;
+  }).join("");
+  box.scrollTop = box.scrollHeight;
+}
+
+function delMsg(id){
+  DB.messages = DB.messages.filter(m => m.id !== id);
+  save();
+  addLog("adminLogs", `${currentUser} یک پیام را حذف کرد`);
+  renderMessages();
+}
+
+function quickBan(target){
+  const reason = prompt("دلیل تعلیق:");
+  if (!reason) return;
+  const days = parseInt(prompt("مدت (روز) - بین 1 تا 30:", "1"));
+  if (!days || days < 1 || days > 30) { alert("فقط بین 1 تا 30 روز"); return; }
+  DB.users[target].ban = { reason, until: now() + daysToMs(days), permanent: false, by: currentUser };
+  save();
+  addLog("adminLogs", `${currentUser} کاربر ${target} را به مدت ${days} روز تعلیق کرد - دلیل: ${reason}`);
+  renderMessages();
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ================== پنل ادمین ================== */
+function openAdminPanel(){
+  document.getElementById("chatPage").classList.add("hidden");
+  document.getElementById("adminPanel").classList.remove("hidden");
+  renderAdminUsers();
+}
+function closeAdmin(){
+  document.getElementById("adminPanel").classList.add("hidden");
+  document.getElementById("chatPage").classList.remove("hidden");
+}
+
+function renderAdminUsers(){
+  const q = document.getElementById("adminSearch").value.trim().toLowerCase();
+  const list = document.getElementById("adminUsersList");
+  const entries = Object.entries(DB.users).filter(([u]) => u.toLowerCase().includes(q));
+  if (!entries.length) { list.innerHTML = "<div class='info'>کاربری یافت نشد</div>"; return; }
+
+  list.innerHTML = entries.map(([u, data]) => {
+    const rank = getActiveRank(data);
+    const ri = RANKS[rank];
+    const banned = isBanned(data);
+    let banInfo = "";
+    if (banned) {
+      banInfo = data.ban.permanent 
+        ? `<div class="info" style="color:#e94560;">تعلیق دائم - دلیل: ${data.ban.reason} - توسط: ${data.ban.by||"?"}</div>`
+        : `<div class="info" style="color:#e94560;">تعلیق تا ${formatDuration(data.ban.until-now())} - دلیل: ${data.ban.reason} - توسط: ${data.ban.by||"?"}</div>`;
+    }
+    // فقط بن‌هایی که خود ادمین فعلی ایجاد کرده رو می‌تونه برداره
+    const canUnban = banned && data.ban.by === currentUser;
+    return `<div class="card" style="background:#0a1628;">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div><b>${u}</b> <span class="rank ${ri.color}">${ri.label}</span></div>
+        <div style="font-size:12px;">${data.isSuper ? "👑 مدیر کل" : ""}</div>
+      </div>
+      ${banInfo}
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;">
+        ${!banned ? `<button class="danger" style="width:auto;padding:5px 10px;font-size:12px;" onclick="adminBan('${u}')">تعلیق (1-30 روز)</button>` : ""}
+        ${canUnban ? `<button class="ok" style="width:auto;padding:5px 10px;font-size:12px;" onclick="adminUnban('${u}')">رفع تعلیق</button>` : ""}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function adminBan(target){
+  if (target === SUPER_USER) { alert("نمی‌توانی مدیر کل را تعلیق کنی"); return; }
+  const reason = prompt("دلیل تعلیق:");
+  if (!reason) return;
+  const days = parseInt(prompt("مدت (روز) - بین 1 تا 30:", "1"));
+  if (!days || days < 1 || days > 30) { alert("فقط بین 1 تا 30 روز"); return; }
+  DB.users[target].ban = { reason, until: now() + daysToMs(days), permanent: false, by: currentUser };
+  save();
+  addLog("adminLogs", `${currentUser} کاربر ${target} را به مدت ${days} روز تعلیق کرد - دلیل: ${reason}`);
+  renderAdminUsers();
+}
+
+function adminUnban(target){
+  const u = DB.users[target];
+  if (!u.ban || u.ban.by !== currentUser) { alert("فقط می‌توانی تعلیق‌هایی که خودت ایجاد کردی را برداری"); return; }
+  u.ban = null;
+  save();
+  addLog("adminLogs", `${currentUser} تعلیق ${target} را برداشت`);
+  renderAdminUsers();
+}
+
+/* ================== پنل مدیریت کل ================== */
+function openSuperPanel(){
+  document.getElementById("chatPage").classList.add("hidden");
+  document.getElementById("superPanel").classList.remove("hidden");
+  switchSuper("users");
+}
+function closeSuper(){
+  document.getElementById("superPanel").classList.add("hidden");
+  document.getElementById("chatPage").classList.remove("hidden");
+}
+
+let currentSuperTab = "users";
+function switchSuper(tab){
+  currentSuperTab = tab;
+  ["users","bans","ranks","slog","alog","rlog"].forEach(t => {
+    const btn = document.getElementById("st" + t.charAt(0).toUpperCase() + t.slice(1));
+    if (btn) btn.classList.toggle("active", t === tab);
+  });
+  // اصلاح نام دکمه‌ها
+  document.getElementById("stUsers").classList.toggle("active", tab==="users");
+  document.getElementById("stBans").classList.toggle("active", tab==="bans");
+  document.getElementById("stRanks").classList.toggle("active", tab==="ranks");
+  document.getElementById("stServerLog").classList.toggle("active", tab==="slog");
+  document.getElementById("stAdminLog").classList.toggle("active", tab==="alog");
+  document.getElementById("stRankLog").classList.toggle("active", tab==="rlog");
+  renderSuper();
+}
+
+function renderSuper(){
+  const box = document.getElementById("superContent");
+  const tab = currentSuperTab;
+
+  if (tab === "users"){
+    box.innerHTML = Object.entries(DB.users).map(([u, d]) => {
+      const rank = getActiveRank(d);
+      const ri = RANKS[rank];
+      return `<div class="card" style="background:#0a1628;">
+        <div><b>${u}</b> <span class="rank ${ri.color}">${ri.label}</span> ${d.isSuper?"👑":""}</div>
+        <div class="info">رمز: <span style="color:#ffd369;">${d.password}</span></div>
+        <div class="info">تعلیق: ${isBanned(d) ? (d.ban.permanent?"دائم":"تا " + formatDuration(d.ban.until-now())) : "ندارد"}</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;">
+          <button class="sec" style="width:auto;padding:5px 10px;font-size:12px;" onclick="superChangePass('${u}')">تغییر رمز</button>
+          <button class="sec" style="width:auto;padding:5px 10px;font-size:12px;" onclick="superGiveRank('${u}')">دادن رنک</button>
+          <button class="sec" style="width:auto;padding:5px 10px;font-size:12px;" onclick="superRemoveRank('${u}')">حذف رنک</button>
+          ${!d.isSuper ? `<button class="danger" style="width:auto;padding:5px 10px;font-size:12px;" onclick="superBan('${u}')">تعلیق</button>` : ""}
+          ${isBanned(d) ? `<button class="ok" style="width:auto;padding:5px 10px;font-size:12px;" onclick="superUnban('${u}')">رفع تعلیق</button>` : ""}
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  else if (tab === "bans"){
+    const banned = Object.entries(DB.users).filter(([u,d]) => isBanned(d));
+    if (!banned.length) { box.innerHTML = "<div class='info'>کسی تعلیق نیست</div>"; return; }
+    box.innerHTML = banned.map(([u,d]) => {
+      const b = d.ban;
+      const timeText = b.permanent ? "دائم" : formatDuration(b.until - now());
+      return `<div class="card" style="background:#0a1628;">
+        <div><b>${u}</b></div>
+        <div class="info">دلیل: ${b.reason}</div>
+        <div class="info">مدت باقی‌مانده: ${timeText}</div>
+        <div class="info">توسط: ${b.by || "?"}</div>
+        <button class="ok" style="width:auto;padding:5px 10px;font-size:12px;margin-top:5px;" onclick="superUnban('${u}')">رفع تعلیق</button>
+      </div>`;
+    }).join("");
+  }
+
+  else if (tab === "ranks"){
+    box.innerHTML = Object.entries(DB.users).map(([u,d]) => {
+      if (!isRankActive(d) && d.rank === "member") return "";
+      const rank = getActiveRank(d);
+      const ri = RANKS[rank];
+      const exp = d.rankExpire === null ? "دائم" : formatDuration(d.rankExpire - now());
+      return `<div class="card" style="background:#0a1628;">
+        <div><b>${u}</b> <span class="rank ${ri.color}">${ri.label}</span></div>
+        <div class="info">انقضا: ${exp}</div>
+        ${rank !== "member" ? `<button class="danger" style="width:auto;padding:5px 10px;font-size:12px;" onclick="superRemoveRank('${u}')">حذف رنک</button>` : ""}
+      </div>`;
+    }).join("");
+  }
+
+  else if (tab === "slog"){
+    box.innerHTML = DB.serverLogs.length ? DB.serverLogs.slice(0,100).map(l => 
+      `<div class="log-entry">[${new Date(l.time).toLocaleString("fa-IR")}] ${l.text}</div>`
+    ).join("") : "<div class='info'>لاگی نیست</div>";
+  }
+
+  else if (tab === "alog"){
+    box.innerHTML = DB.adminLogs.length ? DB.adminLogs.slice(0,100).map(l => 
+      `<div class="log-entry">[${new Date(l.time).toLocaleString("fa-IR")}] ${l.text}</div>`
+    ).join("") : "<div class='info'>لاگی نیست</div>";
+  }
+
+  else if (tab === "rlog"){
+    box.innerHTML = DB.rankLogs.length ? DB.rankLogs.slice(0,100).map(l => 
+      `<div class="log-entry">[${new Date(l.time).toLocaleString("fa-IR")}] ${l.text}</div>`
+    ).join("") : "<div class='info'>لاگی نیست</div>";
+  }
+}
+
+function superChangePass(target){
+  const np = prompt("رمز جدید برای " + target + ":");
+  if (!np) return;
+  const err = validatePass(np);
+  if (err) { alert(err); return; }
+  DB.users[target].password = np;
+  save();
+  addLog("adminLogs", `${currentUser} رمز ${target} را تغییر داد`);
+  renderSuper();
+}
+
+function superGiveRank(target){
+  const rank = prompt("رنک (admin/streamer/vip/gold):");
+  if (!RANKS[rank]) { alert("رنک نامعتبر"); return; }
+  if (rank === "admin" && !DB.users[currentUser].isSuper) { alert("فقط مدیر کل می‌تواند ادمین بدهد"); return; }
+  const days = prompt("مدت (روز، 1-365) یا 'd' برای دائم:");
+  let expire = null;
+  if (days !== "d") {
+    const n = parseInt(days);
+    if (!n || n < 1 || n > 365) { alert("بین 1 تا 365 یا d"); return; }
+    expire = now() + daysToMs(n);
+  }
+  DB.users[target].rank = rank;
+  DB.users[target].rankExpire = expire;
+  save();
+  addLog("rankLogs", `${currentUser} رنک ${rank} به ${target} داد (${expire?formatDuration(expire-now()):"دائم"})`);
+  renderSuper();
+}
+
+function superRemoveRank(target){
+  if (DB.users[target].isSuper) { alert("رنک مدیر کل قابل حذف نیست"); return; }
+  DB.users[target].rank = "member";
+  DB.users[target].rankExpire = null;
+  save();
+  addLog("rankLogs", `${currentUser} رنک ${target} را حذف کرد`);
+  renderSuper();
+}
+
+function superBan(target){
+  if (DB.users[target].isSuper) { alert("مدیر کل را نمی‌توان تعلیق کرد"); return; }
+  const reason = prompt("دلیل تعلیق:");
+  if (!reason) return;
+  const mode = prompt("مدت (روز 1-365) یا 'perm' برای دائم:");
+  let ban;
+  if (mode === "perm") {
+    ban = { reason, permanent: true, until: null, by: currentUser };
+  } else {
+    const n = parseInt(mode);
+    if (!n || n < 1 || n > 365) { alert("بین 1 تا 365 یا perm"); return; }
+    ban = { reason, permanent: false, until: now() + daysToMs(n), by: currentUser };
+  }
+  DB.users[target].ban = ban;
+  save();
+  addLog("adminLogs", `${currentUser} ${target} را تعلیق کرد - دلیل: ${reason} - ${ban.permanent?"دائم":formatDuration(ban.until-now())}`);
+  renderSuper();
+}
+
+function superUnban(target){
+  DB.users[target].ban = null;
+  save();
+  addLog("adminLogs", `${currentUser} تعلیق ${target} را برداشت`);
+  renderSuper();
+}
+
+/* ================== راه‌اندازی ================== */
+// اگر قبلاً لاگین کرده بودیم
+</script>
+
+</body>
+</html>
