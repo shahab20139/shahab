@@ -1,0 +1,287 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10121c">
+  <title>Streamer | شبکه اجتماعی</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: #10121c; color: #f5f6ff;
+      font-family: Tahoma, Arial, sans-serif;
+    }
+    main { width: min(100% - 28px, 600px); margin: auto; }
+    header { padding: 24px 0 14px; }
+    h1 { color: #a78bfa; margin: 0 0 8px; }
+    .muted { color: #a4a8bd; font-size: 13px; }
+    .card {
+      background: #1a1d2b; border: 1px solid #303448;
+      border-radius: 16px; padding: 16px; margin: 14px 0;
+    }
+    input, textarea, button {
+      width: 100%; padding: 13px; border-radius: 10px;
+      font: inherit; margin: 6px 0; 
+    }
+    input, textarea {
+      background: #111421; color: white;
+      border: 1px solid #3b4058;
+    }
+    textarea { min-height: 100px; resize: vertical; }
+    button {
+      border: 0; background: #8b5cf6; color: white;
+      font-weight: bold; cursor: pointer;
+    }
+    button.secondary { background: #303449; }
+    button.danger { background: #a83250; }
+    button:disabled { opacity: .55; }
+    .hidden { display: none !important; }
+    .post { overflow-wrap: anywhere; white-space: pre-wrap; }
+    .post-head {
+      display: flex; justify-content: space-between;
+      gap: 10px; align-items: center;
+    }
+    .post-head strong { color: #c4b5fd; }
+    .post-head button { width: auto; padding: 8px 10px; }
+    #status { color: #c4b5fd; line-height: 1.9; }
+    footer { text-align: center; padding: 25px; color: #888da4; }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>✦ Streamer</h1>
+    <div class="muted">دنیای استریمرها؛ اینجا صدای تو شنیده می‌شه!</div>
+  </header>
+
+  <p id="status">در حال اتصال...</p>
+
+  <section id="auth" class="card">
+    <h3>ورود به Streamer</h3>
+    <form id="authForm">
+      <input id="email" type="email" placeholder="ایمیل"
+        autocomplete="email" required>
+      <input id="password" type="password" placeholder="رمز عبور (حداقل ۶ کاراکتر)"
+        autocomplete="current-password" minlength="6" required>
+      <button type="submit">ورود</button>
+    </form>
+    <button id="signup" class="secondary">ساخت حساب جدید</button>
+    <p class="muted">برای ثبت‌نام از ایمیل واقعی خودت استفاده کن.</p>
+  </section>
+
+  <section id="profile" class="card hidden">
+    <div id="welcome"></div>
+    <div id="adminLabel" class="muted"></div>
+    <button id="logout" class="secondary">خروج از حساب</button>
+  </section>
+
+  <section id="composer" class="card hidden">
+    <h3>پست جدید ✍️</h3>
+    <form id="postForm">
+      <textarea id="content" maxlength="1000"
+        placeholder="چه خبر از دنیای استریم؟" required></textarea>
+      <button type="submit">انتشار پست</button>
+    </form>
+  </section>
+
+  <section>
+    <h3>آخرین پست‌ها 🌟</h3>
+    <div id="posts"></div>
+  </section>
+
+  <footer>Streamer © شبکه اجتماعی استریمرها</footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // این دو مقدار را از پروژه خودت بردار:
+  const SUPABASE_URL = "PASTE_YOUR_PROJECT_URL";
+  const SUPABASE_KEY = "PASTE_YOUR_PUBLISHABLE_KEY";
+
+  const $ = id => document.getElementById(id);
+  const status = $("status");
+  let db = null;
+  let currentUser = null;
+  let isAdmin = false;
+  let busy = false;
+
+  function message(text) {
+    status.textContent = text;
+  }
+
+  function show(el, visible) {
+    $(el).classList.toggle("hidden", !visible);
+  }
+
+  function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;",
+      '"': "&quot;", "'": "&#39;"
+    })[c]);
+  }
+
+  function username(user) {
+    return user.user_metadata?.username ||
+      user.email?.split("@")[0] || "کاربر";
+  }
+
+  function initClient() {
+    if (SUPABASE_URL.startsWith("PASTE_") ||
+        SUPABASE_KEY.startsWith("PASTE_")) {
+      message("ابتدا آدرس و کلید Supabase را در کد وارد کن.");
+      return false;
+    }
+    db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    return true;
+  }
+
+  async function refresh() {
+    if (!db) return;
+    const { data } = await db.auth.getSession();
+    currentUser = data.session?.user || null;
+    isAdmin = false;
+
+    show("auth", !currentUser);
+    show("profile", !!currentUser);
+    show("composer", !!currentUser);
+
+    if (currentUser) {
+      $("welcome").textContent = "سلام، " + username(currentUser);
+      const { data: admin, error } = await db
+        .from("admins").select("user_id")
+        .eq("user_id", currentUser.id).maybeSingle();
+
+      isAdmin = !error && !!admin;
+      $("adminLabel").textContent = isAdmin
+        ? "🛡️ پنل مدیریت فعال است"
+        : "عضو جامعه Streamer";
+    }
+    await loadPosts();
+  }
+
+  async function loadPosts() {
+    if (!db) return;
+    const { data, error } = await db.from("posts")
+      .select("id,user_id,username,content,created_at")
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (error) {
+      $("posts").textContent = "خطا در دریافت پست‌ها.";
+      return;
+    }
+    $("posts").replaceChildren();
+
+    for (const post of data || []) {
+      const card = document.createElement("article");
+      card.className = "card";
+      const canDelete = currentUser &&
+        (isAdmin || currentUser.id === post.user_id);
+
+      card.innerHTML = `
+        <div class="post-head">
+          <strong>${escapeHTML(post.username)}</strong>
+          <span class="muted">${escapeHTML(
+            new Date(post.created_at).toLocaleDateString("fa-IR")
+          )}</span>
+        </div>
+        <p class="post">${escapeHTML(post.content)}</p>
+        ${canDelete ? `<button class="danger delete">حذف پست</button>` : ""}
+      `;
+
+      const deleteButton = card.querySelector(".delete");
+      if (deleteButton) {
+        deleteButton.addEventListener("click", async () => {
+          if (!confirm("این پست حذف شود؟")) return;
+          const { error } = await db.from("posts")
+            .delete().eq("id", post.id);
+          if (error) alert("حذف انجام نشد؛ دسترسی را بررسی کن.");
+          else await loadPosts();
+        });
+      }
+      $("posts").append(card);
+    }
+
+    if (!data?.length) {
+      $("posts").textContent = "هنوز پستی منتشر نشده؛ اولین نفر باش!";
+    }
+  }
+
+  $("authForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    if (busy || !db) return;
+    busy = true;
+    const email = $("email").value.trim();
+    const password = $("password").value;
+    const { error } = await db.auth.signInWithPassword({ email, password });
+    busy = false;
+    if (error) message("ورود ناموفق بود: " + error.message);
+    else {
+      message("با موفقیت وارد شدی!");
+      await refresh();
+    }
+  });
+
+  $("signup").addEventListener("click", async () => {
+    if (busy || !db) return;
+    const email = $("email").value.trim();
+    const password = $("password").value;
+    if (!email || password.length < 6) {
+      message("ایمیل را وارد کن و رمزت حداقل ۶ کاراکتر باشد.");
+      return;
+    }
+    busy = true;
+    const { data, error } = await db.auth.signUp({
+      email,
+      password,
+      options: { data: { username: email.split("@")[0] } }
+    });
+    busy = false;
+
+    if (error) message("ثبت‌نام ناموفق بود: " + error.message);
+    else if (!data.session)
+      message("ثبت‌نام انجام شد؛ ایمیلت را برای تأیید بررسی کن.");
+    else {
+      message("حساب ساخته شد!");
+      await refresh();
+    }
+  });
+
+  $("logout").addEventListener("click", async () => {
+    const { error } = await db.auth.signOut();
+    if (error) message("خروج ناموفق بود.");
+    else {
+      message("از حساب خارج شدی.");
+      await refresh();
+    }
+  });
+
+  $("postForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    if (!currentUser) return message("ابتدا وارد حساب شو.");
+    const content = $("content").value.trim();
+    if (!content || content.length > 1000) return;
+
+    const { error } = await db.from("posts").insert({
+      user_id: currentUser.id,
+      username: username(currentUser),
+      content
+    });
+    if (error) message("انتشار ناموفق بود: " + error.message);
+    else {
+      $("content").value = "";
+      message("پستت منتشر شد! 🎉");
+      await loadPosts();
+    }
+  });
+
+  if (initClient()) {
+    db.auth.onAuthStateChange(() => {
+      setTimeout(() => refresh(), 0);
+    });
+    refresh();
+  }
+</script>
+</body>
+</html>
